@@ -15,8 +15,8 @@ const POSITIONS = [
   { value: 'Base',      label: 'Base'       },
   { value: 'Escolta',   label: 'Escolta'    },
   { value: 'Alero',     label: 'Alero'      },
-  { value: 'Ala-Pívot', label: 'Ala-Pívot' },
-  { value: 'Pívot',     label: 'Pívot'      },
+  { value: 'Ala-Pivot', label: 'Ala-Pivot' },
+  { value: 'Pivot',     label: 'Pivot'      },
 ];
 
 const AVAILABILITIES = [

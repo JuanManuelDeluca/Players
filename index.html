@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Deluca Agencia</title>
+  <link rel="icon" type="image/png" href="Logo/logo.png">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <header>
+    <div class="header-content">
+      <div class="logo-container">
+        <img src="Logo/logo.png" alt="Deluca Agencia" class="header-logo" />
+      </div>
+      <p>Representamos a los mejores talentos del baloncesto</p>
+    </div>
+  </header>
+
+  <section class="filters">
+    <div class="filter-group">
+      <label for="filter-position">Posición</label>
+      <select id="filter-position"></select>
+    </div>
+    <div class="filter-group">
+      <label for="filter-availability">Disponibilidad</label>
+      <select id="filter-availability"></select>
+    </div>
+  </section>
+
+  <main id="players-grid" class="players-grid"></main>
+
+  <!-- Modal -->
+  <div id="modal" class="modal hidden">
+    <div class="modal-content">
+      <button class="modal-close" id="modal-close">✕</button>
+      <img id="modal-photo" src="" alt="" />
+      <h2 id="modal-name"></h2>
+      <span id="modal-position" class="badge"></span>
+      <span id="modal-availability" class="badge"></span>
+      <p id="modal-description"></p>
+      <a id="modal-video" href="" target="_blank" class="btn-video">▶ Ver video</a>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -51,11 +51,10 @@
 
     const badgesEl = document.getElementById('detail-badges');
     const position = params.get('position') || '';
-    const availability = params.get('availability') || '';
-    const availClass = availability === 'disponible' ? 'badge-disponible' : 'badge-no-disponible';
+    const club = params.get('club') || '';
     badgesEl.innerHTML = `
       <span class="badge badge-position">${position}</span>
-      <span class="badge ${availClass}">${availability}</span>
+      ${club ? `<span class="badge badge-club">${club}</span>` : ''}
     `;
 
     // Carga la descripción: si es link de Google Docs lo descarga, si no lo muestra directo

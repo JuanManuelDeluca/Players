@@ -55,7 +55,7 @@ async function resolveDescription(value) {
 const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/1TWntlnHPG7ogpIjC2J06-WGtRlji4oKdXoiLMHFSmE8/export?format=csv';  // <-- pegar URL aquí
 
 // ─────────────────────────────────────────────
-// FILTROS: posiciones y disponibilidades
+// FILTROS: posiciones
 // ─────────────────────────────────────────────
 const POSITIONS = [
   { value: 'all',       label: 'Todas'      },
@@ -66,18 +66,11 @@ const POSITIONS = [
   { value: 'Pivot',     label: 'Pivot'      },
 ];
 
-const AVAILABILITIES = [
-  { value: 'all',           label: 'Todos'         },
-  { value: 'disponible',    label: 'Disponible'    },
-  { value: 'no disponible', label: 'No disponible' },
-];
-
 // ─────────────────────────────────────────────
 // INICIALIZACIÓN DE FILTROS
 // ─────────────────────────────────────────────
 function buildFilters() {
   const posSelect    = document.getElementById('filter-position');
-  const availSelect  = document.getElementById('filter-availability');
   const genderSelect = document.getElementById('filter-gender');
 
   POSITIONS.forEach(({ value, label }) => {
@@ -87,15 +80,7 @@ function buildFilters() {
     posSelect.appendChild(opt);
   });
 
-  AVAILABILITIES.forEach(({ value, label }) => {
-    const opt = document.createElement('option');
-    opt.value = value;
-    opt.textContent = label;
-    availSelect.appendChild(opt);
-  });
-
   posSelect.addEventListener('change', renderPlayers);
-  availSelect.addEventListener('change', renderPlayers);
   genderSelect.addEventListener('change', renderPlayers);
 }
 
@@ -136,9 +121,9 @@ function parseCSV(text) {
         name:           obj['nombre']         || '',
         photo:          convertDriveImageUrl(obj['foto'] || ''),
         position:       obj['posicion']       || '',
-        availability:   obj['disponibilidad'] || '',
-        descriptionUrl: obj['descripcion']    || '', // link a Google Docs o texto plano
-        description:    obj['descripcion']    || '', // se sobreescribe con el texto real
+        club:           obj['club']           || '',
+        descriptionUrl: obj['descripcion']    || '',
+        description:    obj['descripcion']    || '',
         video:          obj['video']          || '',
         gender:         obj['sexo']           || '',
       };
@@ -177,22 +162,16 @@ async function loadPlayers() {
 // ─────────────────────────────────────────────
 let allPlayers = [];
 
-function getBadgeClass(availability) {
-  return availability === 'disponible' ? 'badge-disponible' : 'badge-no-disponible';
-}
-
 function renderPlayers() {
   const pos    = document.getElementById('filter-position').value;
-  const avail  = document.getElementById('filter-availability').value;
   const gender = document.getElementById('filter-gender').value;
   const grid   = document.getElementById('players-grid');
 
   const filtered = allPlayers.filter(p => {
     const playerPositions = p.position.split('/').map(s => s.trim().toLowerCase());
     const matchPos    = pos    === 'all' || playerPositions.includes(pos.toLowerCase());
-    const matchAvail  = avail  === 'all' || p.availability === avail;
     const matchGender = gender === 'all' || p.gender.toLowerCase() === gender;
-    return matchPos && matchAvail && matchGender;
+    return matchPos && matchGender;
   });
 
   grid.innerHTML = '';
@@ -211,7 +190,7 @@ function renderPlayers() {
         <h3>${player.name}</h3>
         <div class="badges">
           <span class="badge badge-position">${player.position}</span>
-          <span class="badge ${getBadgeClass(player.availability)}">${player.availability}</span>
+          ${player.club ? `<span class="badge badge-club">${player.club}</span>` : ''}
         </div>
         <p>${textToHtml(player.description)}</p>
       </div>
@@ -221,8 +200,8 @@ function renderPlayers() {
         name:           player.name,
         photo:          player.photo,
         position:       player.position,
-        availability:   player.availability,
-        descriptionUrl: player.descriptionUrl, // link de Docs o texto plano
+        club:           player.club,
+        descriptionUrl: player.descriptionUrl,
         video:          player.video,
       });
       location.href = `player.html?${p.toString()}`;

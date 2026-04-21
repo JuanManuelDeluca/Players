@@ -1,4 +1,43 @@
 // ─────────────────────────────────────────────
+// GOOGLE DRIVE / DOCS HELPERS
+// ─────────────────────────────────────────────
+
+// Convierte link de Drive a URL embebible en <img>
+// Formatos soportados:
+//   https://drive.google.com/file/d/ID/view...
+//   https://drive.google.com/open?id=ID
+function convertDriveImageUrl(url) {
+  if (!url) return url;
+  const fileMatch = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+  if (fileMatch) return `https://lh3.googleusercontent.com/d/${fileMatch[1]}`;
+  const idMatch = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if (idMatch) return `https://lh3.googleusercontent.com/d/${idMatch[1]}`;
+  return url;
+}
+
+// Extrae el ID de un link de Google Docs
+function extractDocsId(url) {
+  const m = (url || '').match(/\/document\/d\/([a-zA-Z0-9_-]+)/);
+  return m ? m[1] : null;
+}
+
+// Si el valor es un link de Google Docs, descarga el texto plano.
+// El documento debe estar compartido como "cualquiera con el enlace puede ver".
+async function resolveDescription(value) {
+  const id = extractDocsId(value);
+  if (!id) return value;
+  try {
+    const res = await fetch(
+      `https://docs.google.com/document/d/${id}/export?format=txt`
+    );
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return (await res.text()).trim();
+  } catch {
+    return ''; // si falla, descripción vacía en vez de mostrar el link
+  }
+}
+
+// ─────────────────────────────────────────────
 // CONFIGURACIÓN GOOGLE SHEETS
 // ─────────────────────────────────────────────
 // 1. Crea tu hoja con estas columnas (fila 1 = encabezados):
@@ -29,8 +68,9 @@ const AVAILABILITIES = [
 // INICIALIZACIÓN DE FILTROS
 // ─────────────────────────────────────────────
 function buildFilters() {
-  const posSelect   = document.getElementById('filter-position');
-  const availSelect = document.getElementById('filter-availability');
+  const posSelect    = document.getElementById('filter-position');
+  const availSelect  = document.getElementById('filter-availability');
+  const genderSelect = document.getElementById('filter-gender');
 
   POSITIONS.forEach(({ value, label }) => {
     const opt = document.createElement('option');
@@ -48,31 +88,51 @@ function buildFilters() {
 
   posSelect.addEventListener('change', renderPlayers);
   availSelect.addEventListener('change', renderPlayers);
+  genderSelect.addEventListener('change', renderPlayers);
 }
 
 // ─────────────────────────────────────────────
 // CARGA DESDE GOOGLE SHEETS (CSV)
 // ─────────────────────────────────────────────
+function splitCSVRow(row) {
+  const result = [];
+  let current = '';
+  let inQuotes = false;
+  for (const char of row) {
+    if (char === '"') {
+      inQuotes = !inQuotes;
+    } else if (char === ',' && !inQuotes) {
+      result.push(current.trim());
+      current = '';
+    } else {
+      current += char;
+    }
+  }
+  result.push(current.trim());
+  return result;
+}
+
 function parseCSV(text) {
   const [headerLine, ...rows] = text.trim().split('\n');
-  const headers = headerLine.split(',').map(h => h.trim().toLowerCase());
+  const headers = splitCSVRow(headerLine).map(h => h.toLowerCase());
 
   return rows
     .filter(row => row.trim())
     .map(row => {
-      // Manejo básico de comas dentro de comillas
-      const cols = row.match(/(".*?"|[^,]+)(?=,|$)/g) || [];
+      const cols = splitCSVRow(row);
       const obj = {};
       headers.forEach((h, i) => {
-        obj[h] = (cols[i] || '').replace(/^"|"$/g, '').trim();
+        obj[h] = cols[i] || '';
       });
       return {
-        name:         obj['nombre']         || '',
-        photo:        obj['foto']           || '',
-        position:     obj['posicion']       || '',
-        availability: obj['disponibilidad'] || '',
-        description:  obj['descripcion']    || '',
-        video:        obj['video']          || '',
+        name:           obj['nombre']         || '',
+        photo:          convertDriveImageUrl(obj['foto'] || ''),
+        position:       obj['posicion']       || '',
+        availability:   obj['disponibilidad'] || '',
+        descriptionUrl: obj['descripcion']    || '', // link a Google Docs o texto plano
+        description:    obj['descripcion']    || '', // se sobreescribe con el texto real
+        video:          obj['video']          || '',
+        gender:         obj['sexo']           || '',
       };
     })
     .filter(p => p.name);
@@ -90,6 +150,12 @@ async function loadPlayers() {
     const text = await res.text();
     const players = parseCSV(text);
     if (!players.length) throw new Error('La hoja está vacía');
+
+    // Descarga el texto de cada descripción que sea un link de Google Docs
+    await Promise.all(players.map(async p => {
+      p.description = await resolveDescription(p.descriptionUrl);
+    }));
+
     console.info(`${players.length} jugadores cargados desde Google Sheets.`);
     return players;
   } catch (err) {
@@ -108,14 +174,16 @@ function getBadgeClass(availability) {
 }
 
 function renderPlayers() {
-  const pos   = document.getElementById('filter-position').value;
-  const avail = document.getElementById('filter-availability').value;
-  const grid  = document.getElementById('players-grid');
+  const pos    = document.getElementById('filter-position').value;
+  const avail  = document.getElementById('filter-availability').value;
+  const gender = document.getElementById('filter-gender').value;
+  const grid   = document.getElementById('players-grid');
 
   const filtered = allPlayers.filter(p => {
-    const matchPos   = pos   === 'all' || p.position === pos;
-    const matchAvail = avail === 'all' || p.availability === avail;
-    return matchPos && matchAvail;
+    const matchPos    = pos    === 'all' || p.position === pos;
+    const matchAvail  = avail  === 'all' || p.availability === avail;
+    const matchGender = gender === 'all' || p.gender.toLowerCase() === gender;
+    return matchPos && matchAvail && matchGender;
   });
 
   grid.innerHTML = '';
@@ -139,37 +207,19 @@ function renderPlayers() {
         <p>${player.description}</p>
       </div>
     `;
-    card.addEventListener('click', () => openModal(player));
+    card.addEventListener('click', () => {
+      const p = new URLSearchParams({
+        name:           player.name,
+        photo:          player.photo,
+        position:       player.position,
+        availability:   player.availability,
+        descriptionUrl: player.descriptionUrl, // link de Docs o texto plano
+        video:          player.video,
+      });
+      location.href = `player.html?${p.toString()}`;
+    });
     grid.appendChild(card);
   });
-}
-
-// ─────────────────────────────────────────────
-// MODAL
-// ─────────────────────────────────────────────
-function openModal(player) {
-  document.getElementById('modal-photo').src       = player.photo;
-  document.getElementById('modal-photo').alt       = `Foto de ${player.name}`;
-  document.getElementById('modal-name').textContent = player.name;
-
-  const positionBadge  = document.getElementById('modal-position');
-  positionBadge.textContent = player.position;
-  positionBadge.className   = 'badge badge-position';
-
-  const availBadge  = document.getElementById('modal-availability');
-  availBadge.textContent = player.availability;
-  availBadge.className   = `badge ${getBadgeClass(player.availability)}`;
-
-  document.getElementById('modal-description').textContent = player.description;
-  document.getElementById('modal-video').href = player.video;
-
-  document.getElementById('modal').classList.remove('hidden');
-}
-
-function setupModal() {
-  const modal = document.getElementById('modal');
-  document.getElementById('modal-close').addEventListener('click', () => modal.classList.add('hidden'));
-  modal.addEventListener('click', e => { if (e.target === modal) modal.classList.add('hidden'); });
 }
 
 // ─────────────────────────────────────────────
@@ -177,7 +227,6 @@ function setupModal() {
 // ─────────────────────────────────────────────
 async function init() {
   buildFilters();
-  setupModal();
   allPlayers = await loadPlayers();
   renderPlayers();
 }

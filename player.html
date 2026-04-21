@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jugador – Deluca Agencia</title>
+  <link rel="icon" type="image/png" href="Logo/logo.png">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <header>
+    <div class="header-content">
+      <a href="index.html" class="logo-container">
+        <img src="Logo/logo.png" alt="Deluca Agencia" class="header-logo" />
+      </a>
+      <p>Representamos a los mejores talentos del baloncesto</p>
+    </div>
+  </header>
+
+  <main class="player-page">
+    <a href="index.html" class="btn-back">← Volver</a>
+
+    <div class="player-detail">
+      <div class="player-detail-left">
+        <img id="detail-photo" src="" alt="" />
+        <a id="detail-video" href="" target="_blank" class="btn-video" style="display:none">▶ Ver video</a>
+      </div>
+
+      <div class="player-detail-right">
+        <h1 id="detail-name"></h1>
+        <div class="badges" id="detail-badges"></div>
+        <p id="detail-description"></p>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const params = new URLSearchParams(location.search);
+
+    document.getElementById('detail-photo').src = params.get('photo') || '';
+    document.getElementById('detail-photo').alt = `Foto de ${params.get('name')}`;
+    document.getElementById('detail-name').textContent = params.get('name') || '';
+
+    const videoEl = document.getElementById('detail-video');
+    const videoUrl = (params.get('video') || '').trim();
+    if (videoUrl) {
+      videoEl.href = videoUrl;
+      videoEl.style.display = 'block';
+    }
+
+    const badgesEl = document.getElementById('detail-badges');
+    const position = params.get('position') || '';
+    const availability = params.get('availability') || '';
+    const availClass = availability === 'disponible' ? 'badge-disponible' : 'badge-no-disponible';
+    badgesEl.innerHTML = `
+      <span class="badge badge-position">${position}</span>
+      <span class="badge ${availClass}">${availability}</span>
+    `;
+
+    // Carga la descripción: si es link de Google Docs lo descarga, si no lo muestra directo
+    const descEl = document.getElementById('detail-description');
+    const descValue = params.get('descriptionUrl') || '';
+    const docsMatch = descValue.match(/\/document\/d\/([a-zA-Z0-9_-]+)/);
+
+    if (docsMatch) {
+      descEl.textContent = 'Cargando descripción…';
+      fetch(`https://docs.google.com/document/d/${docsMatch[1]}/export?format=txt`)
+        .then(r => r.ok ? r.text() : Promise.reject(r.status))
+        .then(text => { descEl.textContent = text.trim(); })
+        .catch(() => { descEl.textContent = ''; });
+    } else {
+      descEl.textContent = descValue;
+    }
+  </script>
+</body>
+</html>

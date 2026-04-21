@@ -11,14 +11,22 @@
 
   <header>
     <div class="header-content">
-      <div class="logo-container">
+      <a href="index.html" class="logo-container">
         <img src="Logo/logo.png" alt="Deluca Agencia" class="header-logo" />
-      </div>
+      </a>
       <p>Representamos a los mejores talentos del baloncesto</p>
     </div>
   </header>
 
   <section class="filters">
+    <div class="filter-group">
+      <label for="filter-gender">Género</label>
+      <select id="filter-gender">
+        <option value="all">Todos</option>
+        <option value="jugador">Jugador</option>
+        <option value="jugadora">Jugadora</option>
+      </select>
+    </div>
     <div class="filter-group">
       <label for="filter-position">Posición</label>
       <select id="filter-position"></select>
@@ -31,19 +39,6 @@
 
   <main id="players-grid" class="players-grid"></main>
 
-  <!-- Modal -->
-  <div id="modal" class="modal hidden">
-    <div class="modal-content">
-      <button class="modal-close" id="modal-close">✕</button>
-      <img id="modal-photo" src="" alt="" />
-      <h2 id="modal-name"></h2>
-      <span id="modal-position" class="badge"></span>
-      <span id="modal-availability" class="badge"></span>
-      <p id="modal-description"></p>
-      <a id="modal-video" href="" target="_blank" class="btn-video">▶ Ver video</a>
-    </div>
-  </div>
-
-  <script src="app.js"></script>
+<script src="app.js"></script>
 </body>
 </html>

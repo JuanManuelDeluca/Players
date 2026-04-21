@@ -245,6 +245,82 @@ header p {
   z-index: 10;
 }
 
+/* Player detail page */
+.player-page {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 40px 24px;
+}
+
+.btn-back {
+  display: inline-block;
+  margin-bottom: 28px;
+  color: #e84e0f;
+  text-decoration: none;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  transition: opacity 0.2s;
+}
+
+.btn-back:hover {
+  opacity: 0.75;
+}
+
+.player-detail {
+  display: flex;
+  gap: 48px;
+  align-items: flex-start;
+}
+
+.player-detail-left {
+  flex: 0 0 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.player-detail-left img {
+  width: 100%;
+  border-radius: 16px;
+  object-fit: contain;
+  background: #10151c;
+  border: 1px solid #1e2530;
+  padding: 12px;
+}
+
+.player-detail-right {
+  flex: 1;
+  padding-top: 8px;
+}
+
+.player-detail-right h1 {
+  font-size: 2rem;
+  margin-bottom: 14px;
+}
+
+.player-detail-right .badges {
+  margin-bottom: 20px;
+}
+
+.player-detail-right p {
+  color: #bbb;
+  line-height: 1.7;
+  font-size: 1rem;
+}
+
+@media (max-width: 700px) {
+  .player-detail {
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .player-detail-left {
+    flex: unset;
+    width: 100%;
+  }
+}
+
 @media (max-width: 600px) {
   .players-grid {
     padding: 20px;

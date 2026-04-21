@@ -21,6 +21,14 @@ function extractDocsId(url) {
   return m ? m[1] : null;
 }
 
+// Escapa HTML y convierte saltos de línea a <br> para preservar formato
+function textToHtml(text) {
+  return text
+    .replace(/\r\n/g, '\n').replace(/\r/g, '\n')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/\n/g, '<br>');
+}
+
 // Si el valor es un link de Google Docs, descarga el texto plano.
 // El documento debe estar compartido como "cualquiera con el enlace puede ver".
 async function resolveDescription(value) {
@@ -33,7 +41,7 @@ async function resolveDescription(value) {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return (await res.text()).trim();
   } catch {
-    return ''; // si falla, descripción vacía en vez de mostrar el link
+    return '';
   }
 }
 
@@ -140,8 +148,8 @@ function parseCSV(text) {
 
 async function loadPlayers() {
   if (!SHEET_CSV_URL) {
-    console.info('Sin URL de Google Sheets configurada. Usando jugadores de prueba.');
-    return SAMPLE_PLAYERS;
+    console.warn('Sin URL de Google Sheets configurada.');
+    return [];
   }
 
   try {
@@ -159,8 +167,8 @@ async function loadPlayers() {
     console.info(`${players.length} jugadores cargados desde Google Sheets.`);
     return players;
   } catch (err) {
-    console.warn('No se pudo cargar Google Sheets, usando datos de prueba.', err.message);
-    return SAMPLE_PLAYERS;
+    console.error('No se pudo cargar Google Sheets:', err.message);
+    return [];
   }
 }
 
@@ -180,7 +188,8 @@ function renderPlayers() {
   const grid   = document.getElementById('players-grid');
 
   const filtered = allPlayers.filter(p => {
-    const matchPos    = pos    === 'all' || p.position === pos;
+    const playerPositions = p.position.split('/').map(s => s.trim().toLowerCase());
+    const matchPos    = pos    === 'all' || playerPositions.includes(pos.toLowerCase());
     const matchAvail  = avail  === 'all' || p.availability === avail;
     const matchGender = gender === 'all' || p.gender.toLowerCase() === gender;
     return matchPos && matchAvail && matchGender;
@@ -204,7 +213,7 @@ function renderPlayers() {
           <span class="badge badge-position">${player.position}</span>
           <span class="badge ${getBadgeClass(player.availability)}">${player.availability}</span>
         </div>
-        <p>${player.description}</p>
+        <p>${textToHtml(player.description)}</p>
       </div>
     `;
     card.addEventListener('click', () => {

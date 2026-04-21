@@ -63,14 +63,21 @@
     const descValue = params.get('descriptionUrl') || '';
     const docsMatch = descValue.match(/\/document\/d\/([a-zA-Z0-9_-]+)/);
 
+    function textToHtml(text) {
+      return text
+        .replace(/\r\n/g, '\n').replace(/\r/g, '\n')
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/\n/g, '<br>');
+    }
+
     if (docsMatch) {
       descEl.textContent = 'Cargando descripción…';
       fetch(`https://docs.google.com/document/d/${docsMatch[1]}/export?format=txt`)
         .then(r => r.ok ? r.text() : Promise.reject(r.status))
-        .then(text => { descEl.textContent = text.trim(); })
+        .then(text => { descEl.innerHTML = textToHtml(text.trim()); })
         .catch(() => { descEl.textContent = ''; });
     } else {
-      descEl.textContent = descValue;
+      descEl.innerHTML = textToHtml(descValue);
     }
   </script>
 </body>

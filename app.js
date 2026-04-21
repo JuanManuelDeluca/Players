@@ -44,7 +44,7 @@ async function resolveDescription(value) {
 //    nombre | foto | posicion | disponibilidad | descripcion | video
 // 2. Archivo → Compartir → Publicar en la web → CSV
 // 3. Pegá la URL aquí:
-const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/1TWntlnHPG7ogpIjC2J06-WGtRlji4oKdXoiLMHFSmE8/edit?usp=sharing';  // <-- pegar URL aquí
+const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/1TWntlnHPG7ogpIjC2J06-WGtRlji4oKdXoiLMHFSmE8/export?format=csv';  // <-- pegar URL aquí
 
 // ─────────────────────────────────────────────
 // FILTROS: posiciones y disponibilidades

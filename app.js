@@ -80,8 +80,11 @@ function buildFilters() {
     posSelect.appendChild(opt);
   });
 
+  const searchInput = document.getElementById('filter-search');
+
   posSelect.addEventListener('change', renderPlayers);
   genderSelect.addEventListener('change', renderPlayers);
+  searchInput.addEventListener('input', renderPlayers);
 }
 
 // ─────────────────────────────────────────────
@@ -165,13 +168,15 @@ let allPlayers = [];
 function renderPlayers() {
   const pos    = document.getElementById('filter-position').value;
   const gender = document.getElementById('filter-gender').value;
+  const search = document.getElementById('filter-search').value.trim().toLowerCase();
   const grid   = document.getElementById('players-grid');
 
   const filtered = allPlayers.filter(p => {
     const playerPositions = p.position.split('/').map(s => s.trim().toLowerCase());
     const matchPos    = pos    === 'all' || playerPositions.includes(pos.toLowerCase());
     const matchGender = gender === 'all' || p.gender.toLowerCase() === gender;
-    return matchPos && matchGender;
+    const matchSearch = !search || p.name.toLowerCase().includes(search);
+    return matchPos && matchGender && matchSearch;
   });
 
   grid.innerHTML = '';

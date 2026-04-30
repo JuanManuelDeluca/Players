@@ -51,21 +51,34 @@ header p {
   color: #e84e0f;
 }
 
-.filter-group select {
+.filter-group select,
+.filter-group input[type="text"] {
   background: #161c25;
   color: #f0f0f0;
   border: 1px solid #2a3340;
   border-radius: 8px;
   padding: 10px 16px;
   font-size: 1rem;
-  cursor: pointer;
   outline: none;
   min-width: 180px;
   transition: border-color 0.2s;
 }
 
-.filter-group select:focus {
+.filter-group select {
+  cursor: pointer;
+}
+
+.filter-group input[type="text"]::placeholder {
+  color: #556;
+}
+
+.filter-group select:focus,
+.filter-group input[type="text"]:focus {
   border-color: #e84e0f;
+}
+
+.search-group input[type="text"] {
+  min-width: 240px;
 }
 
 /* Players grid */

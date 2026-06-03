@@ -80,11 +80,13 @@ function buildFilters() {
     posSelect.appendChild(opt);
   });
 
-  const searchInput = document.getElementById('filter-search');
+  const searchInput  = document.getElementById('filter-search');
+  const sub21Select = document.getElementById('filter-sub21');
 
   posSelect.addEventListener('change', renderPlayers);
   genderSelect.addEventListener('change', renderPlayers);
   searchInput.addEventListener('input', renderPlayers);
+  sub21Select.addEventListener('change', renderPlayers);
 }
 
 // ─────────────────────────────────────────────
@@ -129,6 +131,7 @@ function parseCSV(text) {
         description:    obj['descripcion']    || '',
         video:          obj['video']          || '',
         gender:         obj['sexo']           || '',
+        birthDate:      obj['fecha de nacimiento'] || '',
       };
     })
     .filter(p => p.name);
@@ -161,6 +164,45 @@ async function loadPlayers() {
 }
 
 // ─────────────────────────────────────────────
+// LÓGICA SUB-21
+// ─────────────────────────────────────────────
+
+// Devuelve el año de nacimiento mínimo para ser Sub-21 en una liga.
+// Regla: sos Sub-21 en todo el torneo si cumplís 21 en el año en que ESE torneo termina.
+// Federal y Prefederal son de un solo año; Liga Nac/Arg usa el año de cierre (el más alto).
+function getSub21CutoffYear(leagueType) {
+  const today = new Date();
+  const year  = today.getFullYear();
+  const month = today.getMonth() + 1; // 1-12
+
+  let refYear;
+
+  if (leagueType === 'federal') {
+    // Feb–ago del año Y; si ya pasó agosto, la próxima es el año que viene
+    refYear = (month >= 2 && month <= 8) ? year : year + 1;
+  } else if (leagueType === 'prefederal') {
+    // Ago–dic del año Y
+    refYear = year;
+  } else if (leagueType === 'liganac') {
+    // Oct(Y)–jun(Y+1): referencia = año de INICIO (Y)
+    // ene–jun: la temporada arrancó en oct del año pasado
+    // jul–dic: la temporada arranca/arrancó en oct de este año
+    refYear = (month <= 6) ? year - 1 : year;
+  }
+
+  return refYear - 21;
+}
+
+function isSub21(birthDateStr, leagueType) {
+  if (!birthDateStr) return false;
+  const parts = birthDateStr.split('/');
+  if (parts.length !== 3) return false;
+  const birthYear = parseInt(parts[2], 10);
+  if (!birthYear) return false;
+  return birthYear >= getSub21CutoffYear(leagueType);
+}
+
+// ─────────────────────────────────────────────
 // RENDER
 // ─────────────────────────────────────────────
 let allPlayers = [];
@@ -169,14 +211,16 @@ function renderPlayers() {
   const pos    = document.getElementById('filter-position').value;
   const gender = document.getElementById('filter-gender').value;
   const search = document.getElementById('filter-search').value.trim().toLowerCase();
-  const grid   = document.getElementById('players-grid');
+  const sub21 = document.getElementById('filter-sub21').value;
+  const grid  = document.getElementById('players-grid');
 
   const filtered = allPlayers.filter(p => {
     const playerPositions = p.position.split('/').map(s => s.trim().toLowerCase());
     const matchPos    = pos    === 'all' || playerPositions.includes(pos.toLowerCase());
     const matchGender = gender === 'all' || p.gender.toLowerCase() === gender;
     const matchSearch = !search || p.name.toLowerCase().includes(search);
-    return matchPos && matchGender && matchSearch;
+    const matchSub21  = sub21  === 'all' || isSub21(p.birthDate, sub21);
+    return matchPos && matchGender && matchSearch && matchSub21;
   });
 
   grid.innerHTML = '';

@@ -1,4 +1,15 @@
 // ─────────────────────────────────────────────
+// SLUG (URL amigable desde nombre)
+// ─────────────────────────────────────────────
+function toSlug(name) {
+  return name.toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-');
+}
+
+// ─────────────────────────────────────────────
 // GOOGLE DRIVE / DOCS HELPERS
 // ─────────────────────────────────────────────
 
@@ -245,15 +256,7 @@ function renderPlayers() {
       </div>
     `;
     card.addEventListener('click', () => {
-      const p = new URLSearchParams({
-        name:           player.name,
-        photo:          player.photo,
-        position:       player.position,
-        club:           player.club,
-        descriptionUrl: player.descriptionUrl,
-        video:          player.video,
-      });
-      location.href = `player.html?${p.toString()}`;
+      location.href = `/player/${toSlug(player.name)}`;
     });
     grid.appendChild(card);
   });

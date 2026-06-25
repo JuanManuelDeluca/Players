@@ -17,26 +17,38 @@
     </nav>
   </header>
 
-  <main class="player-page">
+  <main class="player-page" id="main-content">
     <a href="/index.html" class="btn-back">← Volver</a>
 
     <div class="player-detail">
       <div class="player-detail-left">
         <img id="detail-photo" src="" alt="" />
       </div>
-
       <div class="player-detail-right">
         <h1 id="detail-name"></h1>
         <div class="badges" id="detail-badges"></div>
         <p id="detail-description"></p>
       </div>
-
       <div class="player-videos" id="detail-videos"></div>
     </div>
   </main>
 
   <script>
     const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/1TWntlnHPG7ogpIjC2J06-WGtRlji4oKdXoiLMHFSmE8/export?format=csv';
+
+    // Si la ruta no es /player/..., mostrar 404 real
+    const path = location.pathname;
+    if (!path.startsWith('/player/')) {
+      document.title = 'Página no encontrada – Deluca Agencia';
+      document.getElementById('main-content').innerHTML = `
+        <p style="text-align:center;padding:80px 20px;color:#aaa;font-size:1.2rem">
+          Página no encontrada.<br><br>
+          <a href="/index.html" style="color:#e84e0f">← Volver al inicio</a>
+        </p>`;
+      throw new Error('404');
+    }
+
+    const slug = path.replace(/\/$/, '').split('/').pop();
 
     function toSlug(name) {
       return name.toLowerCase()
@@ -78,12 +90,12 @@
           const obj = {};
           headers.forEach((h, i) => { obj[h] = cols[i] || ''; });
           return {
-            name:           obj['nombre']              || '',
+            name:           obj['nombre']       || '',
             photo:          convertDriveImageUrl(obj['foto'] || ''),
-            position:       obj['posicion']            || '',
-            club:           obj['club']                || '',
-            descriptionUrl: obj['descripcion']         || '',
-            video:          obj['video']               || '',
+            position:       obj['posicion']     || '',
+            club:           obj['club']         || '',
+            descriptionUrl: obj['descripcion']  || '',
+            video:          obj['video']        || '',
           };
         })
         .filter(p => p.name);
@@ -114,25 +126,19 @@
       return null;
     }
 
-    // Extrae el slug de la URL: /player/valen-villoldo → "valen-villoldo"
-    const slug = location.pathname.replace(/\/$/, '').split('/').pop();
-
     async function loadAndDisplay() {
-      if (!slug) { location.href = '/'; return; }
-
       const res = await fetch(SHEET_CSV_URL);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const players = parseCSV(await res.text());
 
       const player = players.find(p => toSlug(p.name) === slug);
       if (!player) {
-        document.querySelector('.player-page').innerHTML =
+        document.getElementById('main-content').innerHTML =
           '<p style="text-align:center;padding:60px;color:#aaa">Jugador no encontrado.</p>';
         return;
       }
 
       document.title = `${player.name} – Deluca Agencia`;
-
       document.getElementById('detail-photo').src = player.photo;
       document.getElementById('detail-photo').alt = `Foto de ${player.name}`;
       document.getElementById('detail-name').textContent = player.name;
@@ -143,7 +149,6 @@
         ${player.club ? `<span class="badge badge-club">${player.club}</span>` : ''}
       `;
 
-      // Videos
       const videosEl = document.getElementById('detail-videos');
       const videoUrls = player.video ? player.video.split(',').map(v => v.trim()).filter(Boolean) : [];
       videoUrls.forEach(url => {
@@ -161,7 +166,6 @@
         videosEl.appendChild(thumb);
       });
 
-      // Descripción
       const descEl = document.getElementById('detail-description');
       const docsMatch = (player.descriptionUrl || '').match(/\/document\/d\/([a-zA-Z0-9_-]+)/);
       if (docsMatch) {
@@ -176,7 +180,7 @@
     }
 
     loadAndDisplay().catch(() => {
-      document.querySelector('.player-page').innerHTML =
+      document.getElementById('main-content').innerHTML =
         '<p style="text-align:center;padding:60px;color:#aaa">Error al cargar el jugador.</p>';
     });
   </script>

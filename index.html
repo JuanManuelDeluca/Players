@@ -10,42 +10,39 @@
 <body>
 
   <header>
-    <div class="header-content">
-      <a href="index.html" class="logo-container">
-        <img src="Logo/logo.png" alt="Deluca Agencia" class="header-logo" />
+    <nav class="navbar">
+      <a href="index.html" class="nav-logo">
+        <img src="Logo/logo.png" alt="Deluca Agencia" />
       </a>
-      <p>Representamos a los mejores talentos del baloncesto</p>
-    </div>
+      <div class="nav-filters">
+        <div class="filter-group search-group">
+          <label for="filter-search">Buscar</label>
+          <input type="text" id="filter-search" placeholder="Nombre del jugador..." autocomplete="off" />
+        </div>
+        <div class="filter-group">
+          <label for="filter-gender">Género</label>
+          <select id="filter-gender">
+            <option value="all">Todos</option>
+            <option value="jugador">Jugador</option>
+            <option value="jugadora">Jugadora</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="filter-position">Posición</label>
+          <select id="filter-position"></select>
+        </div>
+        <div class="filter-group">
+          <label for="filter-sub21">Sub-21</label>
+          <select id="filter-sub21">
+            <option value="all">Todos</option>
+            <option value="federal">Sub-21 Federal</option>
+            <option value="prefederal">Sub-21 Prefederal</option>
+            <option value="liganac">Sub-21 Liga Nac/Arg</option>
+          </select>
+        </div>
+      </div>
+    </nav>
   </header>
-
-  <section class="filters">
-    <div class="filter-group search-group">
-      <label for="filter-search">Buscar</label>
-      <input type="text" id="filter-search" placeholder="Nombre del jugador..." autocomplete="off" />
-    </div>
-    <div class="filter-group">
-      <label for="filter-gender">Género</label>
-      <select id="filter-gender">
-        <option value="all">Todos</option>
-        <option value="jugador">Jugador</option>
-        <option value="jugadora">Jugadora</option>
-      </select>
-    </div>
-    <div class="filter-group">
-      <label for="filter-position">Posición</label>
-      <select id="filter-position"></select>
-    </div>
-    <div class="filter-group">
-      <label for="filter-sub21">Sub-21</label>
-      <select id="filter-sub21">
-        <option value="all">Todos</option>
-        <option value="federal">Sub-21 Federal</option>
-        <option value="prefederal">Sub-21 Prefederal</option>
-        <option value="liganac">Sub-21 Liga Nac/Arg</option>
-      </select>
-    </div>
-
-  </section>
 
   <main id="players-grid" class="players-grid"></main>
 

@@ -10,12 +10,11 @@
 <body>
 
   <header>
-    <div class="header-content">
-      <a href="index.html" class="logo-container">
-        <img src="Logo/logo.png" alt="Deluca Agencia" class="header-logo" />
+    <nav class="navbar">
+      <a href="index.html" class="nav-logo">
+        <img src="Logo/logo.png" alt="Deluca Agencia" />
       </a>
-      <p>Representamos a los mejores talentos del baloncesto</p>
-    </div>
+    </nav>
   </header>
 
   <main class="player-page">
@@ -24,7 +23,6 @@
     <div class="player-detail">
       <div class="player-detail-left">
         <img id="detail-photo" src="" alt="" />
-        <a id="detail-video" href="" target="_blank" class="btn-video" style="display:none">▶ Ver video</a>
       </div>
 
       <div class="player-detail-right">
@@ -32,6 +30,8 @@
         <div class="badges" id="detail-badges"></div>
         <p id="detail-description"></p>
       </div>
+
+      <div class="player-videos" id="detail-videos"></div>
     </div>
   </main>
 
@@ -42,12 +42,43 @@
     document.getElementById('detail-photo').alt = `Foto de ${params.get('name')}`;
     document.getElementById('detail-name').textContent = params.get('name') || '';
 
-    const videoEl = document.getElementById('detail-video');
-    const videoUrl = (params.get('video') || '').trim();
-    if (videoUrl) {
-      videoEl.href = videoUrl;
-      videoEl.style.display = 'block';
+    function getYouTubeId(url) {
+      if (!url) return null;
+      url = url.trim();
+      try {
+        const u = new URL(url);
+        if (u.hostname.includes('youtube.com')) {
+          if (u.pathname === '/watch') return u.searchParams.get('v');
+          const m = u.pathname.match(/\/(?:embed|shorts|v)\/([a-zA-Z0-9_-]+)/);
+          if (m) return m[1];
+        }
+        if (u.hostname === 'youtu.be') {
+          return u.pathname.slice(1).split('?')[0] || null;
+        }
+      } catch {
+        const m = url.match(/(?:v=|youtu\.be\/|\/embed\/|\/shorts\/|\/v\/)([a-zA-Z0-9_-]{11})/);
+        return m ? m[1] : null;
+      }
+      return null;
     }
+
+    const videosEl = document.getElementById('detail-videos');
+    const videoRaw = (params.get('video') || '').trim();
+    const videoUrls = videoRaw ? videoRaw.split(',').map(v => v.trim()).filter(Boolean) : [];
+    videoUrls.forEach(url => {
+      const ytId = getYouTubeId(url);
+      if (!ytId) return;
+      const thumb = document.createElement('a');
+      thumb.href = `https://www.youtube.com/watch?v=${ytId}`;
+      thumb.target = '_blank';
+      thumb.rel = 'noopener noreferrer';
+      thumb.className = 'video-thumb';
+      thumb.innerHTML = `
+        <img src="https://img.youtube.com/vi/${ytId}/hqdefault.jpg" alt="Video">
+        <div class="video-play-overlay"><span>&#9654;</span></div>
+      `;
+      videosEl.appendChild(thumb);
+    });
 
     const badgesEl = document.getElementById('detail-badges');
     const position = params.get('position') || '';

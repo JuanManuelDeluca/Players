@@ -114,6 +114,12 @@
       return null;
     }
 
+    // Si viene con query params viejos (?name=...), redirigir a URL limpia
+    const legacyName = new URLSearchParams(location.search).get('name');
+    if (legacyName) {
+      location.replace('/player/' + toSlug(legacyName));
+    }
+
     // Extrae el slug de la URL: /player/valen-villoldo → "valen-villoldo"
     const slug = location.pathname.replace(/\/$/, '').split('/').pop();
 
